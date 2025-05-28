@@ -35,16 +35,56 @@ class TerraplenagemOptimizer:
         self.optimization_history = []
     
     def _setup_solver(self):
-        """Configura o solver de programação linear"""
+        """Configura o solver de programação linear com fallbacks robustos"""
+        # Lista de solvers para tentar em ordem de preferência
+        solver_options = [
+            ('PULP_CBC_CMD', lambda: pl.PULP_CBC_CMD(timeLimit=self.time_limit, msg=False)),
+            ('COIN_CMD', lambda: pl.COIN_CMD(timeLimit=self.time_limit, msg=False)),
+            ('GLPK_CMD', lambda: pl.GLPK_CMD(timeLimit=self.time_limit, msg=False)),
+            ('CPLEX_CMD', lambda: pl.CPLEX_CMD(timeLimit=self.time_limit, msg=False)),
+            ('GUROBI_CMD', lambda: pl.GUROBI_CMD(timeLimit=self.time_limit, msg=False))
+        ]
+        
+        # Tentar configurar solver preferido primeiro
+        if hasattr(self, 'solver_name') and self.solver_name:
+            try:
+                if self.solver_name == 'COIN_CMD':
+                    solver = pl.COIN_CMD(timeLimit=self.time_limit, msg=False)
+                elif self.solver_name == 'PULP_CBC_CMD':
+                    solver = pl.PULP_CBC_CMD(timeLimit=self.time_limit, msg=False)
+                elif self.solver_name == 'GLPK_CMD':
+                    solver = pl.GLPK_CMD(timeLimit=self.time_limit, msg=False)
+                else:
+                    solver = pl.PULP_CBC_CMD(timeLimit=self.time_limit, msg=False)
+                
+                if solver.available():
+                    self.logger.info(f"Solver configurado: {self.solver_name}")
+                    return solver
+                else:
+                    self.logger.warning(f"Solver {self.solver_name} não disponível, tentando alternativas...")
+            except Exception as e:
+                self.logger.warning(f"Erro ao configurar solver {self.solver_name}: {e}")
+        
+        # Tentar solvers alternativos
+        for solver_name, solver_factory in solver_options:
+            try:
+                solver = solver_factory()
+                if solver.available():
+                    self.logger.info(f"Usando solver alternativo: {solver_name}")
+                    self.solver_name = solver_name  # Atualizar nome do solver
+                    return solver
+            except Exception as e:
+                self.logger.debug(f"Solver {solver_name} não funcionou: {e}")
+                continue
+        
+        # Se nenhum solver externo funcionar, usar o solver padrão do PuLP
+        self.logger.warning("Nenhum solver externo disponível, usando solver padrão do PuLP")
         try:
-            if self.solver_name == 'COIN_CMD':
-                return pl.COIN_CMD(timeLimit=self.time_limit, msg=False)
-            elif self.solver_name == 'PULP_CBC_CMD':
-                return pl.PULP_CBC_CMD(timeLimit=self.time_limit, msg=False)
-            else:
-                return pl.COIN_CMD(timeLimit=self.time_limit, msg=False)
+            # Solver básico integrado (não precisa de executável externo)
+            self.solver_name = 'DEFAULT'
+            return None  # None fará o PuLP usar o solver padrão
         except Exception as e:
-            self.logger.warning(f"Erro ao configurar solver {self.solver_name}: {e}")
+            self.logger.error(f"Falha crítica na configuração do solver: {e}")
             return None
     
     def optimize_distribution(
