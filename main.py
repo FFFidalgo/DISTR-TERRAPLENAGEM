@@ -16,6 +16,7 @@ import traceback
 from config import UI_CONFIG, OPTIMIZATION_CONFIG, ERROR_MESSAGES
 from utils.data_validator import DataValidator, DataSanitizer
 from optimization.optimizer import TerraplenagemOptimizer
+from optimization.scipy_optimizer import ScipyOptimizer
 from optimization.distance_calculator import DistanceCalculator
 from ui.data_input import DataInputHandler, DataExportHandler
 from ui.results_display import ResultsDisplay, PerformanceMetrics
