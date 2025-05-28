@@ -36,7 +36,7 @@ def main():
         ("pulp", "pulp>=2.7.0"),
         ("openpyxl", "openpyxl>=3.1.0"),
         ("xlsxwriter", "xlsxwriter>=3.1.0"),
-        ("plotly", "plotly>=5.15.0"),
+        ("scipy", "scipy>=1.10.0"),
         ("pytest", "pytest>=7.4.0")
     ]
     
