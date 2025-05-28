@@ -37,6 +37,9 @@ pip install "openpyxl>=3.1.0"
 echo 🔄 Instalando xlsxwriter...
 pip install "xlsxwriter>=3.1.0"
 
+echo 🔄 Instalando scipy...
+pip install "scipy>=1.10.0"
+
 echo 🔄 Instalando plotly...
 pip install "plotly>=5.15.0"
 
