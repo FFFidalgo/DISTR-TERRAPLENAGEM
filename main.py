@@ -44,7 +44,15 @@ class TerraplenageM:
     def __init__(self):
         """Inicializa a aplicação"""
         self.initialize_session_state()
-        self.optimizer = TerraplenagemOptimizer()
+        
+        # Tentar usar otimizador PuLP primeiro, depois scipy como fallback
+        try:
+            self.optimizer = TerraplenagemOptimizer()
+            self.optimizer_type = "PuLP"
+        except Exception as e:
+            logger.warning(f"Problema com otimizador PuLP: {e}")
+            self.optimizer = ScipyOptimizer()
+            self.optimizer_type = "SciPy"
     
     def initialize_session_state(self):
         """Inicializa variáveis de estado da sessão"""
