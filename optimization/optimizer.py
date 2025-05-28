@@ -130,7 +130,14 @@ class TerraplenagemOptimizer:
             self._add_constraints(problem, variables, opt_data)
             
             # Resolver problema
-            status = problem.solve(self.solver)
+            if self.solver is not None:
+                status = problem.solve(self.solver)
+            else:
+                # Usar solver padrão do PuLP se nenhum solver externo disponível
+                status = problem.solve()
+                
+            # Log do resultado da resolução
+            self.logger.info(f"Problema resolvido com status: {status}")
             
             # Processar resultado
             result = self._process_solution(problem, variables, opt_data, status)
