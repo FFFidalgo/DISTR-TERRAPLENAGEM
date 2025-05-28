@@ -31,7 +31,7 @@ $PYTHON_CMD -m pip install -r requirements.txt
 
 echo
 echo "🔍 Verificando instalação..."
-$PYTHON_CMD -c "import pandas, numpy, streamlit, pulp, openpyxl, xlsxwriter, plotly, pytest; print('✅ Todas as dependências instaladas com sucesso!')"
+$PYTHON_CMD -c "import pandas, numpy, streamlit, pulp, openpyxl, xlsxwriter, plotly, scipy, pytest; print('✅ Todas as dependências instaladas com sucesso!')"
 
 if [ $? -eq 0 ]; then
     echo
