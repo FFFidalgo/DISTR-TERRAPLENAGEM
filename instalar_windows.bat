@@ -48,7 +48,7 @@ pip install "pytest>=7.4.0"
 
 echo.
 echo 🔍 Verificando instalação...
-python -c "import pandas, numpy, streamlit, pulp, openpyxl, xlsxwriter, plotly, pytest; print('✅ Todas as dependências instaladas com sucesso!')"
+python -c "import pandas, numpy, streamlit, pulp, openpyxl, xlsxwriter, plotly, scipy, pytest; print('✅ Todas as dependências instaladas com sucesso!')"
 
 if %errorlevel% eq 0 (
     echo.
