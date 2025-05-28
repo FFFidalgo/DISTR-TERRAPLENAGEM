@@ -143,6 +143,8 @@ class TerraplenageM:
         # Informações da sessão
         st.sidebar.subheader("ℹ️ Informações da Sessão")
         
+        st.sidebar.write(f"**Otimizador:** {getattr(self, 'optimizer_type', 'Carregando...')}")
+        
         if st.session_state.origins_df is not None:
             st.sidebar.write(f"**Origens:** {len(st.session_state.origins_df)} registros")
         
