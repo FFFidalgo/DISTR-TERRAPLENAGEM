@@ -504,24 +504,42 @@ class TerraplenageM:
             st.metric("Tempo de Otimização", f"{result.get('execution_time', 0):.2f} s")
     
     def run_optimization(self):
-        """Executa o processo de otimização"""
+        """Executa o processo de otimização com fallback automático"""
         try:
-            with st.spinner("🔄 Executando otimização..."):
+            with st.spinner(f"🔄 Executando otimização com {self.optimizer_type}..."):
                 # Preparar parâmetros
                 params = st.session_state.optimization_params.copy()
                 
-                # Executar otimização
+                # Primeira tentativa com otimizador atual
                 result = self.optimizer.optimize_distribution(
                     st.session_state.origins_df,
                     st.session_state.destinations_df,
                     **params
                 )
                 
+                # Se falhou e estamos usando PuLP, tentar scipy
+                if not result['success'] and self.optimizer_type == "PuLP":
+                    st.warning("⚠️ Otimização PuLP falhou, tentando com SciPy...")
+                    
+                    with st.spinner("🔄 Executando otimização com SciPy (fallback)..."):
+                        fallback_optimizer = ScipyOptimizer()
+                        result = fallback_optimizer.optimize_distribution(
+                            st.session_state.origins_df,
+                            st.session_state.destinations_df,
+                            **params
+                        )
+                        
+                        if result['success']:
+                            st.info("✅ Otimização bem-sucedida usando SciPy como fallback!")
+                            # Atualizar para usar scipy por padrão
+                            self.optimizer = fallback_optimizer
+                            self.optimizer_type = "SciPy"
+                
                 # Salvar resultado
                 st.session_state.optimization_result = result
                 
                 if result['success']:
-                    st.success("✅ Otimização concluída com sucesso!")
+                    st.success(f"✅ Otimização concluída com sucesso usando {self.optimizer_type}!")
                     st.balloons()
                     
                     # Mostrar resumo rápido
@@ -538,11 +556,27 @@ class TerraplenageM:
                         st.metric("Número de Alocações", summary['num_allocations'])
                     
                 else:
-                    st.error(f"❌ Otimização falhou: {result.get('error', 'Erro desconhecido')}")
+                    st.error(f"❌ Otimização falhou com ambos os métodos: {result.get('error', 'Erro desconhecido')}")
+                    
+                    # Mostrar informações de diagnóstico
+                    with st.expander("🔧 Diagnóstico e Soluções"):
+                        st.write("**Possíveis causas:**")
+                        st.write("• Problema infactível (volume insuficiente)")
+                        st.write("• Restrições contraditórias")
+                        st.write("• Dados de entrada inválidos")
+                        
+                        st.write("**Soluções sugeridas:**")
+                        st.write("1. Verifique se há volume suficiente nas origens")
+                        st.write("2. Confirme se as restrições de ISC são atendíveis")
+                        st.write("3. Execute o corretor de solver: `python fix_solver.py`")
+                        st.write("4. Tente reduzir a complexidade do problema")
                 
         except Exception as e:
             logger.error(f"Erro durante otimização: {str(e)}")
             st.error(f"Erro durante a otimização: {str(e)}")
+            
+            with st.expander("🔧 Informações Técnicas"):
+                st.code(traceback.format_exc())
     
     def display_data_statistics(self):
         """Exibe estatísticas dos dados carregados"""
